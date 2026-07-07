@@ -91,18 +91,18 @@ var FORM_SECTIONS = [
     title: 'Ihr Glasfaser-Tarif & Router',
     fields: [
       { name: '6-2_Produkt', label: 'Glasfaser-Paket', bestand: true, row: 'tarif', onlyListed: true, options: {
-        '100': 'Glasfaser 150 – 19,99 €/Mon., ab 4. Monat 43,99 €',
-        '300': 'Glasfaser 300 – 19,99 €/Mon., ab 4. Monat 48,99 €',
-        '500': 'Glasfaser 600 – 19,99 €/Mon., ab 4. Monat 58,99 €',
-        '1000': 'Glasfaser 1.000 – 19,99 €/Mon., ab 4. Monat 68,99 €'
+        '100': 'Glasfaser 150 – 19,99 €/Mon., ab dem 4. Monat 43,99 €',
+        '300': 'Glasfaser 300 – 19,99 €/Mon., ab dem 4. Monat 48,99 €',
+        '500': 'Glasfaser 600 – 19,99 €/Mon., ab dem 4. Monat 58,99 €',
+        '1000': 'Glasfaser 1.000 – 19,99 €/Mon., ab dem 4. Monat 68,99 €'
       } },
-      { name: '6-4_Hardware', label: 'Router', bestand: true, row: 'tarif', options: {
-        Basisbox: 'Basisbox – FRITZ!Box 5630 (6,99 €/Mon. oder einmalig 159,99 €)',
-        Premiumbox: 'Premiumbox – FRITZ!Box 5690 (7,99 €/Mon. oder einmalig 209,99 €)',
-        Eigenes: 'Eigenes Gerät (0 €)'
-      } },
-      { name: '6-4_Hardware-Kaufoption_BB', label: 'Kaufoption Basisbox', row: 'kauf', options: { einmalig: 'Einmalzahlung', Ratenkauf: 'Ratenkauf' } },
-      { name: '6-4_Hardware-Kaufoption_PB', label: 'Kaufoption Premiumbox', row: 'kauf', options: { einmalig: 'Einmalzahlung', Ratenkauf: 'Ratenkauf' } },
+      { name: '6-4_Hardware', label: 'Router', bestand: true, row: 'tarif', hardwareCombo: [
+        { v: 'Basisbox|Ratenkauf', label: 'FRITZ!Box 5630 (Basisbox) – Ratenkauf 6,99 €/Mon. (24 Monate)' },
+        { v: 'Basisbox|einmalig', label: 'FRITZ!Box 5630 (Basisbox) – Kauf einmalig 159,99 €' },
+        { v: 'Premiumbox|Ratenkauf', label: 'FRITZ!Box 5690 (Premiumbox) – Ratenkauf 7,99 €/Mon. (24 Monate)' },
+        { v: 'Premiumbox|einmalig', label: 'FRITZ!Box 5690 (Premiumbox) – Kauf einmalig 209,99 €' },
+        { v: 'Eigenes', label: 'Eigenes Gerät (0 €)' }
+      ] },
       { name: '6-1_Check_Aktion', label: 'Ich nehme an einer Aktion teil' },
       { name: '6-1_Aktion', label: 'Aktionsname (falls zutreffend)' },
       { name: '6-1_Check_Bonus', label: 'Ich habe einen Bonuscode' },
@@ -277,7 +277,20 @@ var PARAM_ALIASES = {
             label.setAttribute('for', 'fld_' + cfg.name);
             wrap.appendChild(label);
 
-            if (kind === 'dropdown' || kind === 'radio') {
+            if (cfg.hardwareCombo) {
+              // Kombinierte Auswahl: Router + Kaufoption in einem Dropdown
+              kind = 'hardwareCombo';
+              input = document.createElement('select');
+              var emptyHc = document.createElement('option');
+              emptyHc.value = ''; emptyHc.textContent = 'Bitte wählen …';
+              input.appendChild(emptyHc);
+              cfg.hardwareCombo.forEach(function (o) {
+                var opt = document.createElement('option');
+                opt.value = o.v;
+                opt.textContent = o.label;
+                input.appendChild(opt);
+              });
+            } else if (kind === 'dropdown' || kind === 'radio') {
               input = document.createElement('select');
               var empty = document.createElement('option');
               empty.value = ''; empty.textContent = 'Bitte wählen …';
@@ -682,6 +695,18 @@ var PARAM_ALIASES = {
           if (fd.el.value) { form.getDropdown(fd.name).select(fd.el.value); touched.push(fd.name); }
         } else if (fd.kind === 'radio') {
           if (fd.el.value) { form.getRadioGroup(fd.name).select(fd.el.value); touched.push(fd.name); }
+        } else if (fd.kind === 'hardwareCombo') {
+          // Wert wie "Premiumbox|Ratenkauf": Router + zugehörige Kaufoption ankreuzen
+          if (fd.el.value) {
+            var teile = fd.el.value.split('|');
+            form.getRadioGroup('6-4_Hardware').select(teile[0]);
+            touched.push('6-4_Hardware');
+            if (teile[1]) {
+              var kaufFeld = teile[0] === 'Basisbox' ? '6-4_Hardware-Kaufoption_BB' : '6-4_Hardware-Kaufoption_PB';
+              form.getRadioGroup(kaufFeld).select(teile[1]);
+              touched.push(kaufFeld);
+            }
+          }
         } else {
           form.getTextField(fd.name).setText(fd.el.value || '');
           touched.push(fd.name);
