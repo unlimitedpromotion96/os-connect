@@ -90,7 +90,7 @@ var FORM_SECTIONS = [
   {
     title: 'Ihr Glasfaser-Tarif',
     fields: [
-      { name: '6-2_Produkt', label: 'Glasfaser-Paket', onlyListed: true, options: { '100': 'Glasfaser 150', '300': 'Glasfaser 300', '500': 'Glasfaser 600', '1000': 'Glasfaser 1.000' } },
+      { name: '6-2_Produkt', label: 'Glasfaser-Paket', bestand: true, onlyListed: true, options: { '100': 'Glasfaser 150', '300': 'Glasfaser 300', '500': 'Glasfaser 600', '1000': 'Glasfaser 1.000' } },
       { name: '6-1_Check_Aktion', label: 'Ich nehme an einer Aktion teil' },
       { name: '6-1_Aktion', label: 'Aktionsname (falls zutreffend)' },
       { name: '6-1_Check_Bonus', label: 'Ich habe einen Bonuscode' },
@@ -112,7 +112,7 @@ var FORM_SECTIONS = [
   {
     title: 'Router / Hardware',
     fields: [
-      { name: '6-4_Hardware', label: 'Gewünschte Hardware', options: { Basisbox: 'Basisbox (z.B. FRITZ!Box Basis-Modell)', Premiumbox: 'Premiumbox (z.B. FRITZ!Box Top-Modell)', Eigenes: 'Ich nutze ein eigenes Gerät' } },
+      { name: '6-4_Hardware', label: 'Gewünschte Hardware', bestand: true, options: { Basisbox: 'Basisbox (z.B. FRITZ!Box Basis-Modell)', Premiumbox: 'Premiumbox (z.B. FRITZ!Box Top-Modell)', Eigenes: 'Ich nutze ein eigenes Gerät' } },
       { name: '6-4_Hardware-Kaufoption_BB', label: 'Kaufoption Basisbox', options: { einmalig: 'Einmalzahlung', Ratenkauf: 'Ratenkauf' } },
       { name: '6-4_Hardware-Kaufoption_PB', label: 'Kaufoption Premiumbox', options: { einmalig: 'Einmalzahlung', Ratenkauf: 'Ratenkauf' } }
     ]
@@ -313,11 +313,104 @@ var PARAM_ALIASES = {
 
       buildBestandOptionen(form, container);
       setupKundenstatus(container);
+      setupAddressHelpers();
       prefillFromUrl();
     } catch (err) {
       container.innerHTML = '<p style="color:#a83232;">Das Formular konnte nicht geladen werden: ' +
         err.message + '</p>';
     }
+  }
+
+  // ---------- Adress-Vorschläge (PLZ -> Ort, Straßen-Vorschläge) ----------
+  // Nutzt die freien Dienste api.zippopotam.us (PLZ -> Ort) und
+  // openplzapi.org (Straßenverzeichnis). Fällt bei Fehlern stumm zurück –
+  // das Formular funktioniert auch ohne Internet-Vorschläge.
+  var ADDRESS_GROUPS = [
+    { plz: '3_PLZ', ort: '3_Ort', str: '3_Str' },
+    { plz: '5-1_PLZ', ort: '5-1_Ort', str: '5-1_Str' },
+    { plz: '7-3_PLZ', ort: '7-3_Ort', str: '7-3_Str' }
+  ];
+
+  function debounce(fn, ms) {
+    var t;
+    return function () {
+      var args = arguments, self = this;
+      clearTimeout(t);
+      t = setTimeout(function () { fn.apply(self, args); }, ms);
+    };
+  }
+
+  function attachDatalist(input, idSuffix) {
+    var dl = document.createElement('datalist');
+    dl.id = 'dl_' + idSuffix;
+    document.body.appendChild(dl);
+    input.setAttribute('list', dl.id);
+    input.setAttribute('autocomplete', 'off');
+    return dl;
+  }
+
+  function setupAddressHelpers() {
+    ADDRESS_GROUPS.forEach(function (g) {
+      var plzDef = findDef(g.plz), ortDef = findDef(g.ort), strDef = findDef(g.str);
+      if (!plzDef || !ortDef) return;
+
+      var ortAutoFilled = false;
+
+      // PLZ eingegeben -> Ort nachschlagen und ausfüllen
+      plzDef.el.addEventListener('input', debounce(async function () {
+        var plz = plzDef.el.value.trim();
+        if (!/^\d{5}$/.test(plz)) return;
+        try {
+          var res = await fetch('https://api.zippopotam.us/de/' + plz);
+          if (!res.ok) return;
+          var data = await res.json();
+          var places = (data.places || []).map(function (p) { return p['place name']; });
+          if (places.length === 0) return;
+          if (!ortDef.el.value.trim() || ortAutoFilled) {
+            ortDef.el.value = places[0];
+            ortAutoFilled = true;
+          }
+          if (places.length > 1) {
+            var dl = document.getElementById('dl_' + g.ort) || attachDatalist(ortDef.el, g.ort);
+            dl.innerHTML = '';
+            places.forEach(function (p) {
+              var o = document.createElement('option');
+              o.value = p;
+              dl.appendChild(o);
+            });
+          }
+        } catch (e) { /* Vorschläge sind optional */ }
+      }, 350));
+
+      ortDef.el.addEventListener('input', function () { ortAutoFilled = false; });
+
+      // Straße tippen -> Vorschläge aus dem Straßenverzeichnis zur PLZ
+      if (strDef) {
+        var strDl = attachDatalist(strDef.el, g.str);
+        strDef.el.addEventListener('input', debounce(async function () {
+          var plz = plzDef.el.value.trim();
+          var q = strDef.el.value.trim();
+          if (!/^\d{5}$/.test(plz) || q.length < 2) return;
+          try {
+            var url = 'https://openplzapi.org/de/Streets?postalCode=' + plz +
+                      '&name=' + encodeURIComponent(q) + '&page=1&pageSize=10';
+            var res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            var streets = await res.json();
+            var names = [];
+            (streets || []).forEach(function (s) {
+              if (s && s.name && names.indexOf(s.name) === -1) names.push(s.name);
+            });
+            strDl.innerHTML = '';
+            names.forEach(function (n) {
+              var o = document.createElement('option');
+              o.value = n;
+              strDl.appendChild(o);
+            });
+          } catch (e) { /* Vorschläge sind optional */ }
+        }, 350));
+      }
+    });
   }
 
   // ---------- Zusatzoptionen-Menü für Bestandskunden ----------
