@@ -43,8 +43,8 @@ var FORM_SECTIONS = [
   {
     title: 'Ihre Daten (Auftraggeber:in)',
     fields: [
-      { name: '3_Vorname', label: 'Vorname', bestand: true },
-      { name: '3_Name', label: 'Nachname (ggf. Titel)', bestand: true },
+      { name: '3_Vorname', label: 'Vorname', bestand: true, row: 'name' },
+      { name: '3_Name', label: 'Nachname (ggf. Titel)', bestand: true, row: 'name' },
       { name: '3_Datum', label: 'Geburtsdatum' },
       { name: '3_PLZ', label: 'PLZ', bestand: true, row: 'plz' },
       { name: '3_Ort', label: 'Ort', bestand: true, row: 'plz' },
@@ -88,9 +88,21 @@ var FORM_SECTIONS = [
     ]
   },
   {
-    title: 'Ihr Glasfaser-Tarif',
+    title: 'Ihr Glasfaser-Tarif & Router',
     fields: [
-      { name: '6-2_Produkt', label: 'Glasfaser-Paket', bestand: true, onlyListed: true, options: { '100': 'Glasfaser 150', '300': 'Glasfaser 300', '500': 'Glasfaser 600', '1000': 'Glasfaser 1.000' } },
+      { name: '6-2_Produkt', label: 'Glasfaser-Paket', bestand: true, row: 'tarif', onlyListed: true, options: {
+        '100': 'Glasfaser 150 – 19,99 €/Mon., ab 4. Monat 43,99 €',
+        '300': 'Glasfaser 300 – 19,99 €/Mon., ab 4. Monat 48,99 €',
+        '500': 'Glasfaser 600 – 19,99 €/Mon., ab 4. Monat 58,99 €',
+        '1000': 'Glasfaser 1.000 – 19,99 €/Mon., ab 4. Monat 68,99 €'
+      } },
+      { name: '6-4_Hardware', label: 'Router', bestand: true, row: 'tarif', options: {
+        Basisbox: 'Basisbox – FRITZ!Box 5630 (6,99 €/Mon. oder einmalig 159,99 €)',
+        Premiumbox: 'Premiumbox – FRITZ!Box 5690 (7,99 €/Mon. oder einmalig 209,99 €)',
+        Eigenes: 'Eigenes Gerät (0 €)'
+      } },
+      { name: '6-4_Hardware-Kaufoption_BB', label: 'Kaufoption Basisbox', row: 'kauf', options: { einmalig: 'Einmalzahlung', Ratenkauf: 'Ratenkauf' } },
+      { name: '6-4_Hardware-Kaufoption_PB', label: 'Kaufoption Premiumbox', row: 'kauf', options: { einmalig: 'Einmalzahlung', Ratenkauf: 'Ratenkauf' } },
       { name: '6-1_Check_Aktion', label: 'Ich nehme an einer Aktion teil' },
       { name: '6-1_Aktion', label: 'Aktionsname (falls zutreffend)' },
       { name: '6-1_Check_Bonus', label: 'Ich habe einen Bonuscode' },
@@ -100,21 +112,13 @@ var FORM_SECTIONS = [
   {
     title: 'TV & Optionen',
     fields: [
-      { name: '6-3_Check_ZuhauseTV', label: 'ZuhauseTV (inkl. UHD-Receiver)' },
-      { name: '6-3_Check_weitereReceiver', label: 'Weitere UHD-Receiver' },
+      { name: '6-3_Check_ZuhauseTV', label: 'ZuhauseTV – 9,99 €/Monat (inkl. UHD-Receiver, einmalig 49,99 €)' },
+      { name: '6-3_Check_weitereReceiver', label: 'Weitere UHD-Receiver – einmalig 99,99 € pro Stück' },
       { name: '6-3_Anzahl', label: 'Anzahl weiterer Receiver (max. 4)' },
       { name: '6-3_Check_Aufnahmespeicher', label: 'Aufnahmespeicher dazubuchen' },
       { name: '6-3_Check_Aufnahmespeicher-100', label: 'Aufnahmespeicher +100 Stunden' },
       { name: '6-3_Check_Aufnahmespeicher-200', label: 'Aufnahmespeicher +200 Stunden' },
       { name: '6-3_Check_Mobilfunkflatrate', label: 'Mobilfunk-Flatrate' }
-    ]
-  },
-  {
-    title: 'Router / Hardware',
-    fields: [
-      { name: '6-4_Hardware', label: 'Gewünschte Hardware', bestand: true, options: { Basisbox: 'Basisbox (z.B. FRITZ!Box Basis-Modell)', Premiumbox: 'Premiumbox (z.B. FRITZ!Box Top-Modell)', Eigenes: 'Ich nutze ein eigenes Gerät' } },
-      { name: '6-4_Hardware-Kaufoption_BB', label: 'Kaufoption Basisbox', options: { einmalig: 'Einmalzahlung', Ratenkauf: 'Ratenkauf' } },
-      { name: '6-4_Hardware-Kaufoption_PB', label: 'Kaufoption Premiumbox', options: { einmalig: 'Einmalzahlung', Ratenkauf: 'Ratenkauf' } }
     ]
   },
   {
@@ -164,8 +168,8 @@ var FORM_SECTIONS = [
 // Zusatzoptionen für Bestandskunden (Mehrfachauswahl im Aufklapp-Menü).
 // Jede Option entspricht einem Ankreuzfeld im osnatel-PDF.
 var BESTAND_OPTIONEN = [
-  { name: '6-3_Check_ZuhauseTV', label: 'ZuhauseTV (inkl. UHD-Receiver)' },
-  { name: '6-3_Check_weitereReceiver', label: 'Weitere UHD-Receiver' },
+  { name: '6-3_Check_ZuhauseTV', label: 'ZuhauseTV – 9,99 €/Monat (inkl. UHD-Receiver, einmalig 49,99 €)' },
+  { name: '6-3_Check_weitereReceiver', label: 'Weitere UHD-Receiver – einmalig 99,99 € pro Stück' },
   { name: '6-3_Check_Aufnahmespeicher-100', label: 'Aufnahmespeicher +100 Stunden' },
   { name: '6-3_Check_Aufnahmespeicher-200', label: 'Aufnahmespeicher +200 Stunden' },
   { name: '6-3_Check_DOKU', label: 'TV-Themenpaket DOKU' },
