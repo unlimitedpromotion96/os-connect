@@ -46,10 +46,10 @@ var FORM_SECTIONS = [
       { name: '3_Vorname', label: 'Vorname', bestand: true },
       { name: '3_Name', label: 'Nachname (ggf. Titel)', bestand: true },
       { name: '3_Datum', label: 'Geburtsdatum' },
-      { name: '3_Str', label: 'Straße', bestand: true },
-      { name: '3_Hausnummer', label: 'Hausnummer', bestand: true },
-      { name: '3_PLZ', label: 'PLZ', bestand: true },
-      { name: '3_Ort', label: 'Ort', bestand: true },
+      { name: '3_PLZ', label: 'PLZ', bestand: true, row: 'plz' },
+      { name: '3_Ort', label: 'Ort', bestand: true, row: 'plz' },
+      { name: '3_Str', label: 'Straße', bestand: true, row: 'str' },
+      { name: '3_Hausnummer', label: 'Hausnummer', bestand: true, row: 'str' },
       { name: '3_Kennwort', label: 'Persönliches Kennwort (für telefonische Rückfragen)' }
     ]
   },
@@ -65,10 +65,10 @@ var FORM_SECTIONS = [
   {
     title: 'Anschlussanschrift (nur falls abweichend)',
     fields: [
-      { name: '5-1_Str', label: 'Straße' },
-      { name: '5-1_Hausnummer', label: 'Hausnummer' },
-      { name: '5-1_PLZ', label: 'PLZ' },
-      { name: '5-1_Ort', label: 'Ort' }
+      { name: '5-1_PLZ', label: 'PLZ', row: 'plz' },
+      { name: '5-1_Ort', label: 'Ort', row: 'plz' },
+      { name: '5-1_Str', label: 'Straße', row: 'str' },
+      { name: '5-1_Hausnummer', label: 'Hausnummer', row: 'str' }
     ]
   },
   {
@@ -298,7 +298,19 @@ var PARAM_ALIASES = {
           }
 
           input.name = cfg.name;
-          sectionEl.appendChild(wrap);
+          // Felder mit gleichem row-Kürzel nebeneinander anordnen (z.B. PLZ + Ort)
+          var parent = sectionEl;
+          if (cfg.row) {
+            var rowEl = sectionEl.querySelector('.field-row[data-row="' + cfg.row + '"]');
+            if (!rowEl) {
+              rowEl = document.createElement('div');
+              rowEl.className = 'field-row field-row-' + cfg.row;
+              rowEl.dataset.row = cfg.row;
+              sectionEl.appendChild(rowEl);
+            }
+            parent = rowEl;
+          }
+          parent.appendChild(wrap);
           fieldDefs.push({ name: cfg.name, kind: kind, el: input, bestand: !!cfg.bestand, wrap: wrap });
           added++;
         });

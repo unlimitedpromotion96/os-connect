@@ -560,6 +560,11 @@ section.soft { background: var(--gray-soft); }
   cursor: pointer;
 }
 
+/* Zweispaltige Adress-Zeilen (PLZ + Ort, Straße + Hausnummer) */
+.field-row { display: grid; gap: 12px; }
+.field-row-plz { grid-template-columns: minmax(90px, 130px) 1fr; }
+.field-row-str { grid-template-columns: 1fr minmax(80px, 120px); }
+
 .field { margin-bottom: 18px; }
 .field label {
   display: block;
