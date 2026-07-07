@@ -15,6 +15,11 @@ var CONFIG = {
   // Leer lassen ('') = nur Download, kein E-Mail-Versand.
   emailTo: 'unlimited.promotion96@gmail.com',
 
+  // Bevorzugter Versandweg: eigenes Google-Apps-Script-Webhook (zuverlässiger
+  // als formsubmit). URL der bereitgestellten Web-App eintragen – Anleitung
+  // siehe README. Leer ('') = Versand läuft über formsubmit.co.
+  webhookUrl: '',
+
   // Unterschriftsfelder im PDF: wo die gemalte Unterschrift eingesetzt wird.
   // when: 'always' | Funktion, die anhand der Eingaben entscheidet
   signatureFields: [
@@ -834,8 +839,41 @@ var PARAM_ALIASES = {
     }
   });
 
-  // Auftrag per formsubmit.co an uns mailen (inkl. PDF-Anhang)
+  function blobToBase64(blob) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(String(reader.result).split(',')[1]); };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Auftrag an uns mailen (inkl. PDF-Anhang):
+  // bevorzugt über das eigene Google-Apps-Script, sonst über formsubmit.co
   async function sendOrderMail(blob) {
+    if (CONFIG.webhookUrl) {
+      var payload = JSON.stringify({
+        pdf: await blobToBase64(blob),
+        dateiname: fileName(),
+        name: (getValue('3_Vorname') + ' ' + getValue('3_Name')).trim(),
+        status: isBestandskunde() ? 'Bestandskunde' : 'Neukunde',
+        telefon: getValue('4_Telefon') || getValue('4_Mobil'),
+        email: getValue('4_E-Mail'),
+        tarif: getValue('6-2_Produkt')
+      });
+      // Kein eigener Content-Type-Header -> kein CORS-Preflight nötig
+      var whRes = await fetch(CONFIG.webhookUrl, { method: 'POST', body: payload });
+      var whData = {};
+      try { whData = await whRes.json(); } catch (e) {}
+      if (!whRes.ok || whData.success !== true) {
+        throw new Error(whData.message || ('Übermittlung fehlgeschlagen (' + whRes.status + ')'));
+      }
+      return;
+    }
+    return sendOrderMailFormsubmit(blob);
+  }
+
+  async function sendOrderMailFormsubmit(blob) {
     var fd = new FormData();
     fd.append('_subject', 'Neuer osnatel-Auftrag über os-connect.de');
     fd.append('_template', 'table');

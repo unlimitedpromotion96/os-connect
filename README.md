@@ -53,6 +53,18 @@ Optionen des PDF-Dropdowns im PDF selbst (`assets/formular.pdf`). Wenn du eigene
 Tarife/Preise einträgst: sowohl die Karten als auch die Dropdown-Optionen im PDF
 anpassen (bzw. sag Claude Bescheid — das Beispiel-PDF wird per Skript erzeugt).
 
+## E-Mail-Versand: zuverlässiger Weg über Google Apps Script (empfohlen)
+
+formsubmit.co stellte sich als unzuverlässig bei der Zustellung an Gmail heraus.
+Der robuste Weg läuft über ein kleines Skript im eigenen Google-Konto:
+
+1. Anleitung in `google-apps-script.js` befolgen (script.google.com, ca. 3 Minuten)
+2. Die Web-App-URL (endet auf `/exec`) in `js/formular.js` bei `CONFIG.webhookUrl` eintragen
+3. Fertig – jeder abgesendete Auftrag landet mit PDF-Anhang direkt im Gmail-Postfach
+
+Solange `webhookUrl` leer ist, versucht die Seite den Versand über formsubmit.co
+(erfordert dort eine bestätigte Aktivierung).
+
 ## E-Mail-Versand aktivieren (optional)
 
 Standardmäßig lädt der Kunde das fertige PDF nur herunter. Damit es zusätzlich
