@@ -847,11 +847,16 @@ var PARAM_ALIASES = {
     fd.append('Tarif', getValue('6-2_Produkt'));
     fd.append('attachment', blob, fileName());
 
-    var res = await fetch('https://formsubmit.co/' + encodeURIComponent(CONFIG.emailTo), {
+    var res = await fetch('https://formsubmit.co/ajax/' + encodeURIComponent(CONFIG.emailTo), {
       method: 'POST',
+      headers: { 'Accept': 'application/json' },
       body: fd
     });
-    if (!res.ok) throw new Error('Übermittlung fehlgeschlagen (' + res.status + ')');
+    var data = {};
+    try { data = await res.json(); } catch (e) {}
+    if (!res.ok || String(data.success) !== 'true') {
+      throw new Error(data.message || ('Übermittlung fehlgeschlagen (' + res.status + ')'));
+    }
   }
 
   // Absenden = PDF herunterladen UND automatisch an uns übermitteln
