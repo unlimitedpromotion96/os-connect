@@ -10,9 +10,10 @@ var CONFIG = {
   pdfUrl: 'assets/formular.pdf',
 
   // E-Mail-Versand über formsubmit.co (kostenlos, unterstützt PDF-Anhänge).
-  // Eigene E-Mail-Adresse eintragen zum Aktivieren, z.B. 'info@os-connect.de'.
-  // Leer lassen ('') = Button "Per E-Mail absenden" wird ausgeblendet.
-  emailTo: '',
+  // Beim Absenden wird der unterschriebene Auftrag automatisch an diese
+  // Adresse gemailt UND dem Kunden als Download angeboten.
+  // Leer lassen ('') = nur Download, kein E-Mail-Versand.
+  emailTo: 'unlimited.promotion96@gmail.com',
 
   // Unterschriftsfelder im PDF: wo die gemalte Unterschrift eingesetzt wird.
   // when: 'always' | Funktion, die anhand der Eingaben entscheidet
@@ -833,60 +834,63 @@ var PARAM_ALIASES = {
     }
   });
 
-  document.getElementById('btn-download').addEventListener('click', async function () {
+  // Auftrag per formsubmit.co an uns mailen (inkl. PDF-Anhang)
+  async function sendOrderMail(blob) {
+    var fd = new FormData();
+    fd.append('_subject', 'Neuer osnatel-Auftrag über os-connect.de');
+    fd.append('_template', 'table');
+    fd.append('_captcha', 'false');
+    fd.append('Name', (getValue('3_Vorname') + ' ' + getValue('3_Name')).trim());
+    fd.append('Kundenstatus', isBestandskunde() ? 'Bestandskunde' : 'Neukunde');
+    fd.append('Telefon', getValue('4_Telefon') || getValue('4_Mobil'));
+    fd.append('E-Mail', getValue('4_E-Mail'));
+    fd.append('Tarif', getValue('6-2_Produkt'));
+    fd.append('attachment', blob, fileName());
+
+    var res = await fetch('https://formsubmit.co/' + encodeURIComponent(CONFIG.emailTo), {
+      method: 'POST',
+      body: fd
+    });
+    if (!res.ok) throw new Error('Übermittlung fehlgeschlagen (' + res.status + ')');
+  }
+
+  // Absenden = PDF herunterladen UND automatisch an uns übermitteln
+  var downloadBtn = document.getElementById('btn-download');
+  downloadBtn.addEventListener('click', async function () {
     if (!requireSignature()) return;
     try {
-      setStatus('PDF wird erstellt …');
+      downloadBtn.disabled = true;
+      setStatus('Ihr Auftrag wird erstellt …');
       var bytes = await buildPdf();
       var blob = new Blob([bytes], { type: 'application/pdf' });
+
+      // Download für den Kunden
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = fileName();
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setStatus('Ihr unterschriebener Auftrag wurde heruntergeladen. Vielen Dank!', 'ok');
+
+      // Automatische Übermittlung an uns
+      if (CONFIG.emailTo) {
+        setStatus('Ihr PDF wurde heruntergeladen – der Auftrag wird an uns übermittelt …');
+        try {
+          await sendOrderMail(blob);
+          setStatus('Vielen Dank! Ihr unterschriebener Auftrag wurde heruntergeladen und erfolgreich an uns übermittelt. Wir melden uns bei Ihnen.', 'ok');
+        } catch (mailErr) {
+          setStatus('Ihr PDF wurde heruntergeladen. Die automatische Übermittlung hat leider nicht geklappt – bitte senden Sie uns das PDF per E-Mail an ' +
+            CONFIG.emailTo + '.', 'err');
+        }
+      } else {
+        setStatus('Ihr unterschriebener Auftrag wurde heruntergeladen. Vielen Dank!', 'ok');
+      }
     } catch (err) {
       setStatus('Fehler: ' + err.message, 'err');
+    } finally {
+      downloadBtn.disabled = false;
     }
   });
-
-  // E-Mail-Versand (nur aktiv, wenn CONFIG.emailTo gesetzt ist)
-  var sendBtn = document.getElementById('btn-send');
-  if (CONFIG.emailTo) {
-    sendBtn.hidden = false;
-    sendBtn.addEventListener('click', async function () {
-      if (!requireSignature()) return;
-      try {
-        sendBtn.disabled = true;
-        setStatus('Auftrag wird gesendet …');
-        var bytes = await buildPdf();
-        var blob = new Blob([bytes], { type: 'application/pdf' });
-
-        var fd = new FormData();
-        fd.append('_subject', 'Neuer osnatel-Auftrag über os-connect.de');
-        fd.append('_template', 'table');
-        fd.append('_captcha', 'false');
-        fd.append('Name', getValue('3_Vorname') + ' ' + getValue('3_Name'));
-        fd.append('Telefon', getValue('4_Telefon') || getValue('4_Mobil'));
-        fd.append('E-Mail', getValue('4_E-Mail'));
-        fd.append('Tarif', getValue('6-2_Produkt'));
-        fd.append('attachment', blob, fileName());
-
-        var res = await fetch('https://formsubmit.co/' + encodeURIComponent(CONFIG.emailTo), {
-          method: 'POST',
-          body: fd
-        });
-        if (!res.ok) throw new Error('Versand fehlgeschlagen (' + res.status + ')');
-        setStatus('Vielen Dank! Ihr unterschriebener Auftrag wurde erfolgreich an uns gesendet.', 'ok');
-      } catch (err) {
-        setStatus('Der Versand hat leider nicht geklappt: ' + err.message +
-          ' – Bitte laden Sie das PDF herunter und senden Sie es uns per E-Mail.', 'err');
-      } finally {
-        sendBtn.disabled = false;
-      }
-    });
-  }
 
   // ---------- Start ----------
   loadPdf();
