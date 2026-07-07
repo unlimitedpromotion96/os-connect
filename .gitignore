@@ -1,0 +1,6 @@
+# Erst beim Livegang mit eigener Domain veröffentlichen:
+CNAME
+
+# System- und Arbeitsdateien
+.DS_Store
+.claude/

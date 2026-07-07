@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auftrag online ausfüllen &amp; unterschreiben – OS-Connect</title>
+  <meta name="description" content="Füllen Sie Ihren Auftrag bei OS-Connect bequem online aus und unterschreiben Sie digital – per Finger oder Maus. Das fertige PDF erhalten Sie sofort.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.os-connect.de/formular.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Auftrag online ausfüllen &amp; unterschreiben – OS-Connect">
+  <meta property="og:description" content="Auftrag online ausfüllen, digital unterschreiben, PDF sofort erhalten.">
+  <meta property="og:url" content="https://www.os-connect.de/formular.html">
+  <meta property="og:locale" content="de_DE">
+
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="index.html" aria-label="Startseite – Partner von osnatel">
+      <span class="osnatel-badge"><span class="wm">osnatel</span></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menü öffnen" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="index.html">Start</a></li>
+      <li><a href="leistungen.html">Leistungen</a></li>
+      <li><a href="index.html#tarife">Tarife</a></li>
+      <li><a href="index.html#so-gehts">So geht's</a></li>
+      <li><a href="index.html#kontakt">Kontakt</a></li>
+      <li><a class="btn" href="formular.html">Auftrag online ausfüllen</a></li>
+    </ul>
+  </div>
+</header>
+
+<main>
+
+  <section class="page-hero">
+    <div class="container">
+      <h1>Auftrag online ausfüllen &amp; unterschreiben</h1>
+      <p>Füllen Sie die Felder aus, unterschreiben Sie mit dem Finger oder der Maus – und laden Sie Ihr fertiges, unterschriebenes PDF sofort herunter.</p>
+    </div>
+  </section>
+
+  <section class="soft">
+    <div class="container form-layout">
+
+      <!-- ===== Formular ===== -->
+      <div class="form-panel">
+        <h2>1. Ihre Angaben</h2>
+        <form id="pdf-form" novalidate>
+          <div id="form-fields">
+            <!-- Felder werden automatisch aus dem PDF geladen -->
+            <p id="loading-fields">Formular wird geladen …</p>
+          </div>
+
+          <h2 style="margin-top:30px;">2. Ihre Unterschrift</h2>
+          <p class="form-section-note">Ihre Unterschrift wird automatisch an allen erforderlichen Stellen des Auftrags eingesetzt: unter den Auftrag selbst, unter das SEPA-Lastschrift-Mandat (falls Sie eine IBAN angegeben haben) und unter die Kündigungsvollmacht beim Anbieterwechsel (falls zutreffend). Die Datumsfelder werden automatisch ausgefüllt.</p>
+          <div class="sig-wrap">
+            <canvas id="sig-canvas" class="sig-canvas" aria-label="Unterschriftsfeld – hier unterschreiben"></canvas>
+            <div class="sig-actions">
+              <button type="button" class="btn-small" id="sig-clear">Unterschrift löschen</button>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn" id="btn-preview">Vorschau anzeigen</button>
+            <button type="button" class="btn btn-accent" id="btn-download">PDF herunterladen</button>
+            <button type="button" class="btn btn-outline" id="btn-send" hidden>Per E-Mail absenden</button>
+          </div>
+          <div class="status-msg" id="status-msg" role="status"></div>
+        </form>
+      </div>
+
+      <!-- ===== PDF-Vorschau ===== -->
+      <div class="pdf-preview">
+        <iframe id="pdf-frame" title="PDF-Vorschau"></iframe>
+        <p class="hint">💡 Die Vorschau aktualisiert sich, wenn Sie auf „Vorschau anzeigen" klicken. Auf dem Smartphone wird die Vorschau ggf. nicht angezeigt – der Download funktioniert trotzdem.</p>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <svg class="osc-logo" viewBox="0 0 330 62" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OS-Connect Logo">
+          <text x="0" y="45" font-family="Poppins, sans-serif" font-weight="700" font-size="42" fill="#f2c94c" letter-spacing="-1">OS</text>
+          <g fill="#f2c94c">
+            <rect x="66" y="20" width="26" height="22" rx="7"/>
+            <rect x="92" y="24" width="7" height="4" rx="2"/>
+            <rect x="92" y="34" width="7" height="4" rx="2"/>
+          </g>
+          <path d="M83 23 l-6 9 h4 l-3 7 8 -9 h-4 l4 -7 z" fill="#25272a"/>
+          <g fill="none" stroke="#5fcdb6" stroke-width="3.4" stroke-linecap="round">
+            <path d="M144 15 a 15 15 0 0 1 15 -8"/>
+            <path d="M147 23 a 9 9 0 0 1 10 -6"/>
+          </g>
+          <text x="104" y="45" font-family="Poppins, sans-serif" font-weight="600" font-size="42" fill="#5fcdb6" letter-spacing="-1">Connect</text>
+        </svg>
+        <p>os-connect.de ist ein Angebot von OS-Connect – deinem Partner von osnatel für Glasfaser- und DSL-Tarife.</p>
+      </div>
+      <div>
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="index.html">Start</a></li>
+          <li><a href="leistungen.html">Leistungen</a></li>
+      <li><a href="index.html#tarife">Tarife</a></li>
+          <li><a href="formular.html">Auftrag online ausfüllen</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="impressum.html">Impressum</a></li>
+          <li><a href="datenschutz.html">Datenschutz</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2026 OS-Connect · www.os-connect.de
+    </div>
+  </div>
+</footer>
+
+<script src="js/vendor/pdf-lib.min.js"></script>
+<script src="js/vendor/signature_pad.umd.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/formular.js"></script>
+</body>
+</html>
