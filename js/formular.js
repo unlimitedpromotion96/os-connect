@@ -97,10 +97,10 @@ var FORM_SECTIONS = [
         '1000': 'Glasfaser 1.000 – 19,99 €/Mon., ab dem 4. Monat 68,99 €'
       } },
       { name: '6-4_Hardware', label: 'Router', bestand: true, row: 'tarif', hardwareCombo: [
-        { v: 'Basisbox|Ratenkauf', label: 'FRITZ!Box 5630 (Basisbox) – Ratenkauf 6,99 €/Mon. (24 Monate)' },
-        { v: 'Basisbox|einmalig', label: 'FRITZ!Box 5630 (Basisbox) – Kauf einmalig 159,99 €' },
-        { v: 'Premiumbox|Ratenkauf', label: 'FRITZ!Box 5690 (Premiumbox) – Ratenkauf 7,99 €/Mon. (24 Monate)' },
-        { v: 'Premiumbox|einmalig', label: 'FRITZ!Box 5690 (Premiumbox) – Kauf einmalig 209,99 €' },
+        { v: 'Basisbox|Ratenkauf', label: 'FRITZ!Box 5630 (Basisbox) – Kauf auf Raten, 6,99 €/Mon. (24 Monate)' },
+        { v: 'Basisbox|einmalig', label: 'FRITZ!Box 5630 (Basisbox) – einmaliger Kauf, 159,99 €' },
+        { v: 'Premiumbox|Ratenkauf', label: 'FRITZ!Box 5690 (Premiumbox) – Kauf auf Raten, 7,99 €/Mon. (24 Monate)' },
+        { v: 'Premiumbox|einmalig', label: 'FRITZ!Box 5690 (Premiumbox) – einmaliger Kauf, 209,99 €' },
         { v: 'Eigenes', label: 'Eigenes Gerät (0 €)' }
       ] },
       { name: '6-1_Check_Aktion', label: 'Ich nehme an einer Aktion teil' },
