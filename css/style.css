@@ -102,22 +102,28 @@ img, svg { max-width: 100%; display: block; }
 .brand .dot { color: var(--red); }
 .brand svg { width: 34px; height: 34px; }
 
-/* osnatel-Logo-Badge (Header) */
-.osnatel-badge {
+/* Offizielles osnatel-Logo (Header) */
+.brand {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background: var(--red);
-  color: #fff;
-  padding: 8px 18px 11px;
-  border-radius: 9px;
-  line-height: 1;
+  gap: 10px;
+  text-decoration: none;
 }
-.osnatel-badge .wm {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.015em;
-  text-transform: lowercase;
+.osnatel-logo {
+  height: 34px;
+  width: auto;
+  display: block;
+}
+.partner-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border: 1.5px solid var(--red);
+  border-radius: 5px;
+  padding: 3px 8px;
+  line-height: 1;
 }
 
 /* OS-Connect-Logo (Footer, dezent) */
@@ -687,3 +693,67 @@ section.soft { background: var(--gray-soft); }
   section { padding: 56px 0; }
   .hero { padding: 64px 0 72px; }
 }
+
+/* ===== EECC / Pflichtunterlagen ===== */
+.eecc-intro {
+  background: #fff5f6;
+  border: 1px solid #f6c9cf;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 6px 0 18px;
+  font-size: 0.92rem;
+  color: #5a3a3e;
+}
+.eecc-docs { display: flex; flex-direction: column; gap: 10px; }
+.eecc-doc {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e3e5e8;
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.15s, background 0.15s;
+}
+.eecc-doc.checked { border-color: var(--red); background: #fff8f9; }
+.eecc-doc input[type="checkbox"] {
+  margin-top: 3px;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+.eecc-doc .doc-body { flex: 1; min-width: 0; }
+.eecc-doc .doc-title {
+  font-weight: 600;
+  color: var(--ink);
+  display: block;
+}
+.eecc-doc .doc-note {
+  font-size: 0.82rem;
+  color: #6b7075;
+  margin-top: 2px;
+}
+.eecc-doc .doc-link {
+  display: inline-block;
+  margin-top: 5px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--red);
+  text-decoration: none;
+}
+.eecc-doc .doc-link:hover { text-decoration: underline; }
+.eecc-doc .doc-link.missing { color: #9aa0a6; cursor: not-allowed; }
+.eecc-note {
+  margin: 16px 0 4px;
+  padding: 13px 15px;
+  background: #f4f6f8;
+  border-left: 3px solid var(--red);
+  border-radius: 4px;
+  font-size: 0.86rem;
+  color: #4a4f54;
+  line-height: 1.5;
+}
+.btn:disabled,
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }

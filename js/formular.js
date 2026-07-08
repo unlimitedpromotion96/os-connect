@@ -26,6 +26,21 @@ var CONFIG = {
     { name: '16_Unterschrift', when: 'always' },                     // Hauptauftrag (S.4)
     { name: 'SEPA_Unterschrift', when: 'sepa' },                     // SEPA-Mandat (S.5)
     { name: '7-2_Unterschrift', when: 'portierung' }                 // Anbieterwechsel (S.3)
+  ],
+
+  // Gesetzlich vorgeschriebene Vertragsunterlagen (EECC / § 54–57 TKG).
+  // Der Kunde muss jede Unterlage öffnen können und den Erhalt bestätigen,
+  // bevor er unterschreiben und absenden kann.
+  // -> Legen Sie die PDFs unter assets/eecc/ ab. Fehlt eine Datei, erscheint
+  //    der Eintrag als "folgt vor Vertragsschluss" (Bestätigung bleibt Pflicht).
+  //    required:false => Erhalt-Bestätigung ist optional (nur Info).
+  documents: [
+    { id: 'zusammenfassung', label: 'Vertragszusammenfassung', file: 'assets/eecc/vertragszusammenfassung.pdf', note: 'EU-Pflichtformular gemäß § 55 TKG', required: true },
+    { id: 'leistung',        label: 'Leistungsbeschreibung / Produktinformationsblatt', file: 'assets/eecc/leistungsbeschreibung.pdf', note: 'Bandbreiten, Entgelte, Vertragslaufzeit', required: true },
+    { id: 'preisliste',      label: 'Preisliste', file: 'assets/eecc/preisliste.pdf', note: 'Alle Entgelte im Überblick', required: true },
+    { id: 'agb',             label: 'Allgemeine Geschäftsbedingungen (AGB)', file: 'assets/eecc/agb.pdf', note: '', required: true },
+    { id: 'widerruf',        label: 'Widerrufsbelehrung & Muster-Widerrufsformular', file: 'assets/eecc/widerrufsbelehrung.pdf', note: '14-tägiges Widerrufsrecht im Fernabsatz', required: true },
+    { id: 'datenschutz',     label: 'Datenschutzinformationen', file: 'datenschutz.html', note: 'Verarbeitung Ihrer Daten (Art. 13 DSGVO)', required: true }
   ]
 };
 
@@ -826,6 +841,94 @@ var PARAM_ALIASES = {
     return 'osnatel-Glasfaser-Auftrag_' + name + '_' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '.pdf';
   }
 
+  // ---------- EECC / Pflichtunterlagen ----------
+  var docChecks = [];
+
+  function renderDocuments() {
+    var wrap = document.getElementById('eecc-docs');
+    if (!wrap || !CONFIG.documents) return;
+    wrap.innerHTML = '';
+    docChecks = [];
+
+    CONFIG.documents.forEach(function (doc) {
+      var row = document.createElement('label');
+      row.className = 'eecc-doc';
+
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = 'doc_' + doc.id;
+
+      var body = document.createElement('div');
+      body.className = 'doc-body';
+
+      var title = document.createElement('span');
+      title.className = 'doc-title';
+      title.textContent = doc.label + (doc.required ? ' *' : '');
+      body.appendChild(title);
+
+      if (doc.note) {
+        var note = document.createElement('span');
+        note.className = 'doc-note';
+        note.textContent = doc.note;
+        body.appendChild(note);
+      }
+
+      var link = document.createElement('a');
+      link.className = 'doc-link';
+      link.href = doc.file;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = 'Öffnen / Herunterladen';
+      body.appendChild(link);
+
+      row.appendChild(cb);
+      row.appendChild(body);
+      wrap.appendChild(row);
+
+      cb.addEventListener('change', function () {
+        row.classList.toggle('checked', cb.checked);
+        updateGate();
+      });
+
+      docChecks.push({ cfg: doc, cb: cb, link: link });
+
+      // Prüfen, ob die Datei existiert – sonst "folgt vor Vertragsschluss".
+      fetch(doc.file, { method: 'HEAD' }).then(function (res) {
+        if (!res.ok) markMissing(link, cb);
+      }).catch(function () { markMissing(link, cb); });
+    });
+  }
+
+  function markMissing(link, cb) {
+    link.classList.add('missing');
+    link.removeAttribute('href');
+    link.removeAttribute('target');
+    link.textContent = 'folgt vor Vertragsschluss';
+    var title = cb.parentNode.querySelector('.doc-title');
+    if (title) title.setAttribute('title', 'Diese Unterlage wird Ihnen vor Vertragsschluss zugestellt.');
+  }
+
+  function documentsOk() {
+    return docChecks.every(function (d) {
+      return !d.cfg.required || d.cb.checked;
+    });
+  }
+
+  function requireDocuments() {
+    if (!documentsOk()) {
+      setStatus('Bitte bestätigen Sie zuerst den Erhalt aller Pflichtunterlagen (Abschnitt 2).', 'err');
+      var first = docChecks.find(function (d) { return d.cfg.required && !d.cb.checked; });
+      if (first) first.cb.focus();
+      return false;
+    }
+    return true;
+  }
+
+  function updateGate() {
+    var btn = document.getElementById('btn-download');
+    if (btn) btn.disabled = !documentsOk();
+  }
+
   // ---------- Buttons ----------
   document.getElementById('btn-preview').addEventListener('click', async function () {
     try {
@@ -900,6 +1003,7 @@ var PARAM_ALIASES = {
   // Absenden = PDF herunterladen UND automatisch an uns übermitteln
   var downloadBtn = document.getElementById('btn-download');
   downloadBtn.addEventListener('click', async function () {
+    if (!requireDocuments()) return;
     if (!requireSignature()) return;
     try {
       downloadBtn.disabled = true;
@@ -931,11 +1035,13 @@ var PARAM_ALIASES = {
     } catch (err) {
       setStatus('Fehler: ' + err.message, 'err');
     } finally {
-      downloadBtn.disabled = false;
+      updateGate();
     }
   });
 
   // ---------- Start ----------
   loadPdf();
   initSignaturePad();
+  renderDocuments();
+  updateGate();
 })();

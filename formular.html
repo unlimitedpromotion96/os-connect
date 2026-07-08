@@ -22,7 +22,8 @@
 <header class="site-header">
   <div class="container nav">
     <a class="brand" href="index.html" aria-label="Startseite – Partner von osnatel">
-      <span class="osnatel-badge"><span class="wm">osnatel</span></span>
+      <img class="osnatel-logo" src="assets/osnatel-logo.svg" alt="osnatel" width="112" height="34">
+      <span class="partner-tag">Partner</span>
     </a>
     <button class="nav-toggle" aria-label="Menü öffnen" aria-expanded="false">
       <span></span><span></span><span></span>
@@ -59,7 +60,24 @@
             <p id="loading-fields">Formular wird geladen …</p>
           </div>
 
-          <h2 style="margin-top:30px;">2. Ihre Unterschrift</h2>
+          <h2 style="margin-top:30px;">2. Vertragsunterlagen &amp; Pflichtinformationen</h2>
+          <p class="eecc-intro">
+            Bevor Sie den Auftrag unterschreiben, erhalten Sie – wie beim regulären
+            Vertragsabschluss – alle gesetzlich vorgeschriebenen Unterlagen. Bitte öffnen
+            und lesen Sie jedes Dokument und bestätigen Sie den Erhalt. Erst danach können
+            Sie unterschreiben und absenden.
+          </p>
+          <div id="eecc-docs" class="eecc-docs">
+            <!-- Unterlagen werden per JS aus der Konfiguration erzeugt -->
+          </div>
+          <p class="eecc-note" id="eecc-legal-note">
+            <strong>Hinweis nach § 55 TKG:</strong> Die Vertragszusammenfassung und die
+            weiteren Vertragsunterlagen werden Ihnen dauerhaft zur Verfügung gestellt.
+            Sollten einzelne Unterlagen erst nach dem Absenden übermittelt werden können,
+            wird der Vertrag erst wirksam, nachdem Sie deren Erhalt bestätigt haben.
+          </p>
+
+          <h2 style="margin-top:30px;">3. Ihre Unterschrift</h2>
           <p class="form-section-note">Ihre Unterschrift wird automatisch an allen erforderlichen Stellen des Auftrags eingesetzt: unter den Auftrag selbst, unter das SEPA-Lastschrift-Mandat (falls Sie eine IBAN angegeben haben) und unter die Kündigungsvollmacht beim Anbieterwechsel (falls zutreffend). Die Datumsfelder werden automatisch ausgefüllt.</p>
           <div class="sig-wrap">
             <canvas id="sig-canvas" class="sig-canvas" aria-label="Unterschriftsfeld – hier unterschreiben"></canvas>
