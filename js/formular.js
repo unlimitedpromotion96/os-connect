@@ -842,28 +842,28 @@ var PARAM_ALIASES = {
   }
 
   // ---------- EECC / Pflichtunterlagen ----------
-  var docChecks = [];
+  var masterCb = null;
 
   function renderDocuments() {
     var wrap = document.getElementById('eecc-docs');
     if (!wrap || !CONFIG.documents) return;
     wrap.innerHTML = '';
-    docChecks = [];
+    masterCb = null;
 
     CONFIG.documents.forEach(function (doc) {
-      var row = document.createElement('label');
+      var row = document.createElement('div');
       row.className = 'eecc-doc';
 
-      var cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.id = 'doc_' + doc.id;
+      var icon = document.createElement('span');
+      icon.className = 'doc-icon';
+      icon.textContent = '📄';
 
       var body = document.createElement('div');
       body.className = 'doc-body';
 
       var title = document.createElement('span');
       title.className = 'doc-title';
-      title.textContent = doc.label + (doc.required ? ' *' : '');
+      title.textContent = doc.label;
       body.appendChild(title);
 
       if (doc.note) {
@@ -881,44 +881,49 @@ var PARAM_ALIASES = {
       link.textContent = 'Öffnen / Herunterladen';
       body.appendChild(link);
 
-      row.appendChild(cb);
+      row.appendChild(icon);
       row.appendChild(body);
       wrap.appendChild(row);
 
-      cb.addEventListener('change', function () {
-        row.classList.toggle('checked', cb.checked);
-        updateGate();
-      });
-
-      docChecks.push({ cfg: doc, cb: cb, link: link });
-
       // Prüfen, ob die Datei existiert – sonst "folgt vor Vertragsschluss".
       fetch(doc.file, { method: 'HEAD' }).then(function (res) {
-        if (!res.ok) markMissing(link, cb);
-      }).catch(function () { markMissing(link, cb); });
+        if (!res.ok) markMissing(link);
+      }).catch(function () { markMissing(link); });
+    });
+
+    // Eine einzige Bestätigung für ALLE Unterlagen.
+    var confirm = document.createElement('label');
+    confirm.className = 'eecc-confirm';
+    masterCb = document.createElement('input');
+    masterCb.type = 'checkbox';
+    masterCb.id = 'eecc-confirm-all';
+    var txt = document.createElement('span');
+    txt.innerHTML = 'Ich habe alle oben aufgeführten Unterlagen erhalten und gelesen und akzeptiere sie. <span class="req">*</span>';
+    confirm.appendChild(masterCb);
+    confirm.appendChild(txt);
+    wrap.appendChild(confirm);
+
+    masterCb.addEventListener('change', function () {
+      confirm.classList.toggle('checked', masterCb.checked);
+      updateGate();
     });
   }
 
-  function markMissing(link, cb) {
+  function markMissing(link) {
     link.classList.add('missing');
     link.removeAttribute('href');
     link.removeAttribute('target');
     link.textContent = 'folgt vor Vertragsschluss';
-    var title = cb.parentNode.querySelector('.doc-title');
-    if (title) title.setAttribute('title', 'Diese Unterlage wird Ihnen vor Vertragsschluss zugestellt.');
   }
 
   function documentsOk() {
-    return docChecks.every(function (d) {
-      return !d.cfg.required || d.cb.checked;
-    });
+    return !!(masterCb && masterCb.checked);
   }
 
   function requireDocuments() {
     if (!documentsOk()) {
-      setStatus('Bitte bestätigen Sie zuerst den Erhalt aller Pflichtunterlagen (Abschnitt 2).', 'err');
-      var first = docChecks.find(function (d) { return d.cfg.required && !d.cb.checked; });
-      if (first) first.cb.focus();
+      setStatus('Bitte bestätigen Sie zuerst den Erhalt der Vertragsunterlagen (Abschnitt 2).', 'err');
+      if (masterCb) masterCb.focus();
       return false;
     }
     return true;
