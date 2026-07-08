@@ -826,6 +826,36 @@ var PARAM_ALIASES = {
     return doc.save({ updateFieldAppearances: false });
   }
 
+  // ---------- Vertrag + EECC-Unterlagen zu EINER PDF zusammenführen ----------
+  // Hängt alle vorhandenen Unterlagen-PDFs (CONFIG.documents mit .pdf, bundle!==false)
+  // hinter den unterschriebenen Vertrag. Fehlende/ungültige werden übersprungen.
+  async function buildBundle() {
+    var contractBytes = await buildPdf();
+    // In das Vertragsdokument SELBST laden (behält AcroForm + Feld-Darstellungen)
+    // und die Unterlagen-Seiten hinten anhängen – so bleibt der ausgefüllte,
+    // unterschriebene Vertrag exakt erhalten.
+    var bundle = await PDFLib.PDFDocument.load(contractBytes, { ignoreEncryption: true });
+
+    var docs = (CONFIG.documents || []).filter(function (d) {
+      return d.bundle !== false && /\.pdf(\?|$)/i.test(d.file);
+    });
+    var angehaengt = [];
+    for (var i = 0; i < docs.length; i++) {
+      try {
+        var res = await fetch(docs[i].file);
+        if (!res.ok) continue;
+        var buf = await res.arrayBuffer();
+        var extra = await PDFLib.PDFDocument.load(buf, { ignoreEncryption: true });
+        (await bundle.copyPages(extra, extra.getPageIndices()))
+          .forEach(function (p) { bundle.addPage(p); });
+        angehaengt.push(docs[i].label);
+      } catch (e) { /* ungültige/fehlende Datei überspringen */ }
+    }
+    lastBundleDocs = angehaengt;
+    return bundle.save({ updateFieldAppearances: false });
+  }
+  var lastBundleDocs = [];
+
   function requireSignature() {
     if (!signaturePad || signaturePad.isEmpty()) {
       setStatus('Bitte unterschreiben Sie zuerst im Unterschriftsfeld.', 'err');
@@ -838,7 +868,7 @@ var PARAM_ALIASES = {
     var d = new Date();
     var pad = function (n) { return String(n).padStart(2, '0'); };
     var name = (getValue('3_Name') || 'Auftrag').replace(/[^A-Za-z0-9ÄÖÜäöüß-]/g, '_');
-    return 'osnatel-Glasfaser-Auftrag_' + name + '_' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '.pdf';
+    return 'osnatel-Auftrag-und-Unterlagen_' + name + '_' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '.pdf';
   }
 
   // ---------- EECC / Pflichtunterlagen ----------
@@ -1013,7 +1043,7 @@ var PARAM_ALIASES = {
     try {
       downloadBtn.disabled = true;
       setStatus('Ihr Auftrag wird erstellt …');
-      var bytes = await buildPdf();
+      var bytes = await buildBundle();
       var blob = new Blob([bytes], { type: 'application/pdf' });
 
       // Download für den Kunden
@@ -1029,7 +1059,8 @@ var PARAM_ALIASES = {
         setStatus('Ihr PDF wurde heruntergeladen – der Auftrag wird an uns übermittelt …');
         try {
           await sendOrderMail(blob);
-          setStatus('Vielen Dank! Ihr unterschriebener Auftrag wurde heruntergeladen und erfolgreich an uns übermittelt. Wir melden uns bei Ihnen.', 'ok');
+          var zusatz = lastBundleDocs.length ? ' inklusive ' + lastBundleDocs.length + ' Vertragsunterlagen' : '';
+          setStatus('Vielen Dank! Ihr unterschriebener Auftrag' + zusatz + ' wurde heruntergeladen und erfolgreich an uns übermittelt. Wir melden uns bei Ihnen.', 'ok');
         } catch (mailErr) {
           setStatus('Ihr PDF wurde heruntergeladen. Die automatische Übermittlung hat leider nicht geklappt – bitte senden Sie uns das PDF per E-Mail an ' +
             CONFIG.emailTo + '.', 'err');
