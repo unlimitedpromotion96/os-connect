@@ -35,12 +35,9 @@ var CONFIG = {
   //    der Eintrag als "folgt vor Vertragsschluss" (Bestätigung bleibt Pflicht).
   //    required:false => Erhalt-Bestätigung ist optional (nur Info).
   documents: [
-    { id: 'zusammenfassung', label: 'Vertragszusammenfassung', file: 'assets/eecc/vertragszusammenfassung.pdf', note: 'EU-Pflichtformular gemäß § 55 TKG', required: true },
-    { id: 'leistung',        label: 'Leistungsbeschreibung / Produktinformationsblatt', file: 'assets/eecc/leistungsbeschreibung.pdf', note: 'Bandbreiten, Entgelte, Vertragslaufzeit', required: true },
-    { id: 'preisliste',      label: 'Preisliste', file: 'assets/eecc/preisliste.pdf', note: 'Alle Entgelte im Überblick', required: true },
-    { id: 'agb',             label: 'Allgemeine Geschäftsbedingungen (AGB)', file: 'assets/eecc/agb.pdf', note: '', required: true },
-    { id: 'widerruf',        label: 'Widerrufsbelehrung & Muster-Widerrufsformular', file: 'assets/eecc/widerrufsbelehrung.pdf', note: '14-tägiges Widerrufsrecht im Fernabsatz', required: true },
-    { id: 'datenschutz',     label: 'Datenschutzinformationen', file: 'datenschutz.html', note: 'Verarbeitung Ihrer Daten (Art. 13 DSGVO)', required: true }
+    { id: 'produktinfo',     label: 'Produktinformationsblatt', file: 'assets/eecc/produktinformationsblatt.pdf', note: 'Leistungen, Bandbreiten, Entgelte, Vertragslaufzeit' },
+    { id: 'zusammenfassung', label: 'Vertragszusammenfassung', file: 'assets/eecc/vertragszusammenfassung.pdf', note: 'EU-Pflichtformular gemäß § 55 TKG' },
+    { id: 'vorvertraglich',  label: 'Vorvertragliche Informationen', file: 'assets/eecc/vorvertragliche-information.pdf', note: 'AGB, Widerruf, Preise und weitere Pflichtangaben' }
   ]
 };
 
@@ -872,13 +869,10 @@ var PARAM_ALIASES = {
   }
 
   // ---------- EECC / Pflichtunterlagen ----------
-  var masterCb = null;
-
   function renderDocuments() {
     var wrap = document.getElementById('eecc-docs');
     if (!wrap || !CONFIG.documents) return;
     wrap.innerHTML = '';
-    masterCb = null;
 
     CONFIG.documents.forEach(function (doc) {
       var row = document.createElement('div');
@@ -920,23 +914,6 @@ var PARAM_ALIASES = {
         if (!res.ok) markMissing(link);
       }).catch(function () { markMissing(link); });
     });
-
-    // Eine einzige Bestätigung für ALLE Unterlagen.
-    var confirm = document.createElement('label');
-    confirm.className = 'eecc-confirm';
-    masterCb = document.createElement('input');
-    masterCb.type = 'checkbox';
-    masterCb.id = 'eecc-confirm-all';
-    var txt = document.createElement('span');
-    txt.innerHTML = 'Ich habe alle oben aufgeführten Unterlagen erhalten und gelesen und akzeptiere sie. <span class="req">*</span>';
-    confirm.appendChild(masterCb);
-    confirm.appendChild(txt);
-    wrap.appendChild(confirm);
-
-    masterCb.addEventListener('change', function () {
-      confirm.classList.toggle('checked', masterCb.checked);
-      updateGate();
-    });
   }
 
   function markMissing(link) {
@@ -944,24 +921,6 @@ var PARAM_ALIASES = {
     link.removeAttribute('href');
     link.removeAttribute('target');
     link.textContent = 'folgt vor Vertragsschluss';
-  }
-
-  function documentsOk() {
-    return !!(masterCb && masterCb.checked);
-  }
-
-  function requireDocuments() {
-    if (!documentsOk()) {
-      setStatus('Bitte bestätigen Sie zuerst den Erhalt der Vertragsunterlagen (Abschnitt 2).', 'err');
-      if (masterCb) masterCb.focus();
-      return false;
-    }
-    return true;
-  }
-
-  function updateGate() {
-    var btn = document.getElementById('btn-download');
-    if (btn) btn.disabled = !documentsOk();
   }
 
   // ---------- Buttons ----------
@@ -1038,7 +997,6 @@ var PARAM_ALIASES = {
   // Absenden = PDF herunterladen UND automatisch an uns übermitteln
   var downloadBtn = document.getElementById('btn-download');
   downloadBtn.addEventListener('click', async function () {
-    if (!requireDocuments()) return;
     if (!requireSignature()) return;
     try {
       downloadBtn.disabled = true;
@@ -1071,7 +1029,7 @@ var PARAM_ALIASES = {
     } catch (err) {
       setStatus('Fehler: ' + err.message, 'err');
     } finally {
-      updateGate();
+      downloadBtn.disabled = false;
     }
   });
 
@@ -1079,5 +1037,4 @@ var PARAM_ALIASES = {
   loadPdf();
   initSignaturePad();
   renderDocuments();
-  updateGate();
 })();
