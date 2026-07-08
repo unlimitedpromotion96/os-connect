@@ -444,6 +444,38 @@ section.soft { background: var(--gray-soft); }
 .site-footer a { color: rgba(255,255,255,0.75); text-decoration: none; }
 .site-footer a:hover { color: #fff; }
 .footer-bottom { border-top: 1px solid rgba(255,255,255,0.15); padding-top: 22px; text-align: center; font-size: 0.88rem; }
+.footer-contact { font-style: normal; line-height: 1.7; }
+.footer-hours { font-size: 0.9rem; }
+.footer-hours li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 5px;
+}
+.footer-hours li span:first-child { color: rgba(255,255,255,0.6); }
+.footer-hours li span:last-child { text-align: right; }
+
+/* Öffnungszeiten-Karte (Kontaktbereich Startseite) */
+.hours-card {
+  max-width: 420px;
+  margin: 32px auto 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+}
+.hours-card h3 { font-size: 1.05rem; margin-bottom: 14px; }
+.hours-list { list-style: none; }
+.hours-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.hours-list li:last-child { border-bottom: none; }
+.hours-list .day { font-weight: 600; color: var(--ink); }
+.hours-list .closed { color: #9aa0a6; }
 
 /* ===== Unterseiten (Hero klein) ===== */
 .page-hero {
