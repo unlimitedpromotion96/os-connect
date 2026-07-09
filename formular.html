@@ -61,17 +61,17 @@
 
           <h2 style="margin-top:30px;">2. Vertragsunterlagen &amp; Pflichtinformationen</h2>
           <p class="eecc-intro">
-            Diese gesetzlich vorgeschriebenen Unterlagen können Sie hier jederzeit öffnen
-            und lesen. Sie werden Ihrem unterschriebenen Auftrag automatisch als PDF
-            beigefügt – Sie erhalten sie also zusammen mit Ihrem Download.
+            Diese gesetzlich vorgeschriebenen Unterlagen erhalten Sie vorab. Bitte laden Sie
+            sie zuerst herunter – erst danach können Sie den Auftrag absenden. Zusätzlich
+            liegen die Unterlagen Ihrer fertigen Auftrags-PDF bei.
           </p>
           <div id="eecc-docs" class="eecc-docs">
             <!-- Unterlagen werden per JS aus der Konfiguration erzeugt -->
           </div>
+          <button type="button" class="btn btn-outline eecc-dl-btn" id="btn-eecc-download">Vertragsunterlagen herunterladen</button>
           <p class="eecc-note" id="eecc-legal-note">
             <strong>Hinweis nach § 55 TKG:</strong> Die Vertragszusammenfassung und die
-            weiteren Pflichtunterlagen werden Ihnen mit dem Auftrag dauerhaft in einer
-            PDF-Datei zur Verfügung gestellt.
+            weiteren Pflichtunterlagen werden Ihnen dauerhaft zur Verfügung gestellt.
           </p>
 
           <h2 style="margin-top:30px;">3. Ihre Unterschrift</h2>
@@ -85,7 +85,7 @@
 
           <div class="form-actions">
             <button type="button" class="btn btn-outline" id="btn-preview">Vorschau anzeigen</button>
-            <button type="button" class="btn btn-accent" id="btn-download">Auftrag absenden &amp; PDF herunterladen</button>
+            <button type="button" class="btn btn-accent" id="btn-download" disabled>Auftrag absenden &amp; PDF herunterladen</button>
           </div>
           <p class="hint" style="margin-top:10px;">Mit dem Absenden erhalten Sie <strong>eine PDF-Datei mit Ihrem unterschriebenen Auftrag und allen Vertragsunterlagen</strong> als Download – dieselbe Datei wird automatisch an uns übermittelt.</p>
           <div class="status-msg" id="status-msg" role="status"></div>

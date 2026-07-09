@@ -800,6 +800,12 @@ section.soft { background: var(--gray-soft); }
 }
 .eecc-doc .doc-link:hover { text-decoration: underline; }
 .eecc-doc .doc-link.missing { color: #9aa0a6; cursor: not-allowed; }
+.eecc-dl-btn { margin-top: 14px; }
+.eecc-dl-btn.done {
+  border-color: #2e9e5b;
+  color: #2e9e5b;
+  background: #eef8f1;
+}
 .eecc-note {
   margin: 16px 0 4px;
   padding: 13px 15px;

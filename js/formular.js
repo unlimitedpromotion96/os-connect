@@ -853,6 +853,43 @@ var PARAM_ALIASES = {
   }
   var lastBundleDocs = [];
 
+  // Nur die EECC-Unterlagen (ohne Vertrag) zu EINER PDF zusammenführen.
+  async function buildDocsBundle() {
+    var out = await PDFLib.PDFDocument.create();
+    var docs = (CONFIG.documents || []).filter(function (d) {
+      return d.bundle !== false && /\.pdf(\?|$)/i.test(d.file);
+    });
+    var count = 0;
+    for (var i = 0; i < docs.length; i++) {
+      try {
+        var res = await fetch(docs[i].file);
+        if (!res.ok) continue;
+        var buf = await res.arrayBuffer();
+        var d = await PDFLib.PDFDocument.load(buf, { ignoreEncryption: true });
+        (await out.copyPages(d, d.getPageIndices()))
+          .forEach(function (p) { out.addPage(p); });
+        count++;
+      } catch (e) { /* fehlende/ungültige Datei überspringen */ }
+    }
+    return { bytes: count ? await out.save() : null, count: count };
+  }
+
+  // Der Auftrag kann erst abgesendet werden, wenn die Unterlagen geladen wurden.
+  var eeccDone = false;
+  function updateSubmitGate() {
+    var btn = document.getElementById('btn-download');
+    if (btn) btn.disabled = !eeccDone;
+  }
+
+  function triggerDownload(blob, name) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
   function requireSignature() {
     if (!signaturePad || signaturePad.isEmpty()) {
       setStatus('Bitte unterschreiben Sie zuerst im Unterschriftsfeld.', 'err');
@@ -936,6 +973,32 @@ var PARAM_ALIASES = {
     }
   });
 
+  // Schritt 1: Vertragsunterlagen herunterladen -> schaltet "Absenden" frei
+  var eeccBtn = document.getElementById('btn-eecc-download');
+  if (eeccBtn) {
+    eeccBtn.addEventListener('click', async function () {
+      try {
+        eeccBtn.disabled = true;
+        setStatus('Vertragsunterlagen werden vorbereitet …');
+        var result = await buildDocsBundle();
+        if (result.bytes) {
+          triggerDownload(new Blob([result.bytes], { type: 'application/pdf' }), 'osnatel-Vertragsunterlagen.pdf');
+          setStatus('Vertragsunterlagen heruntergeladen. Sie können den Auftrag jetzt absenden.', 'ok');
+        } else {
+          setStatus('Die Vertragsunterlagen werden noch ergänzt. Sie können den Auftrag trotzdem absenden – die Unterlagen liegen Ihrer Auftrags-PDF bei.', 'ok');
+        }
+        eeccBtn.classList.add('done');
+        eeccBtn.textContent = '✓ Vertragsunterlagen heruntergeladen';
+        eeccDone = true;
+        updateSubmitGate();
+      } catch (err) {
+        setStatus('Fehler: ' + err.message, 'err');
+      } finally {
+        eeccBtn.disabled = false;
+      }
+    });
+  }
+
   function blobToBase64(blob) {
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
@@ -997,6 +1060,10 @@ var PARAM_ALIASES = {
   // Absenden = PDF herunterladen UND automatisch an uns übermitteln
   var downloadBtn = document.getElementById('btn-download');
   downloadBtn.addEventListener('click', async function () {
+    if (!eeccDone) {
+      setStatus('Bitte laden Sie zuerst die Vertragsunterlagen herunter (Abschnitt 2).', 'err');
+      return;
+    }
     if (!requireSignature()) return;
     try {
       downloadBtn.disabled = true;
@@ -1029,7 +1096,7 @@ var PARAM_ALIASES = {
     } catch (err) {
       setStatus('Fehler: ' + err.message, 'err');
     } finally {
-      downloadBtn.disabled = false;
+      updateSubmitGate();
     }
   });
 
@@ -1037,4 +1104,5 @@ var PARAM_ALIASES = {
   loadPdf();
   initSignaturePad();
   renderDocuments();
+  updateSubmitGate();
 })();
