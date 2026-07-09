@@ -961,18 +961,6 @@ var PARAM_ALIASES = {
   }
 
   // ---------- Buttons ----------
-  document.getElementById('btn-preview').addEventListener('click', async function () {
-    try {
-      setStatus('Vorschau wird erstellt …');
-      var bytes = await buildPdf();
-      var blob = new Blob([bytes], { type: 'application/pdf' });
-      document.getElementById('pdf-frame').src = URL.createObjectURL(blob);
-      setStatus('Vorschau aktualisiert.', 'ok');
-    } catch (err) {
-      setStatus('Fehler: ' + err.message, 'err');
-    }
-  });
-
   // Schritt 1: Vertragsunterlagen herunterladen -> schaltet "Absenden" frei
   var eeccBtn = document.getElementById('btn-eecc-download');
   if (eeccBtn) {
