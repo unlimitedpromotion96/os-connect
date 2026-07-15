@@ -905,78 +905,24 @@ var PARAM_ALIASES = {
     return 'osnatel-Auftrag-und-Unterlagen_' + name + '_' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '.pdf';
   }
 
-  // ---------- EECC / Pflichtunterlagen ----------
-  function renderDocuments() {
-    var wrap = document.getElementById('eecc-docs');
-    if (!wrap || !CONFIG.documents) return;
-    wrap.innerHTML = '';
-
-    CONFIG.documents.forEach(function (doc) {
-      var row = document.createElement('div');
-      row.className = 'eecc-doc';
-
-      var icon = document.createElement('span');
-      icon.className = 'doc-icon';
-      icon.textContent = '📄';
-
-      var body = document.createElement('div');
-      body.className = 'doc-body';
-
-      var title = document.createElement('span');
-      title.className = 'doc-title';
-      title.textContent = doc.label;
-      body.appendChild(title);
-
-      if (doc.note) {
-        var note = document.createElement('span');
-        note.className = 'doc-note';
-        note.textContent = doc.note;
-        body.appendChild(note);
-      }
-
-      var link = document.createElement('a');
-      link.className = 'doc-link';
-      link.href = doc.file;
-      link.target = '_blank';
-      link.rel = 'noopener';
-      link.textContent = 'Öffnen / Herunterladen';
-      body.appendChild(link);
-
-      row.appendChild(icon);
-      row.appendChild(body);
-      wrap.appendChild(row);
-
-      // Prüfen, ob die Datei existiert – sonst "folgt vor Vertragsschluss".
-      fetch(doc.file, { method: 'HEAD' }).then(function (res) {
-        if (!res.ok) markMissing(link);
-      }).catch(function () { markMissing(link); });
-    });
-  }
-
-  function markMissing(link) {
-    link.classList.add('missing');
-    link.removeAttribute('href');
-    link.removeAttribute('target');
-    link.textContent = 'folgt vor Vertragsschluss';
-  }
 
   // ---------- Buttons ----------
-  // Schritt 1: Vertragsunterlagen herunterladen -> schaltet "Absenden" frei
+  // Schritt 1: Vorvertragliche Informationen herunterladen -> schaltet "Absenden" frei
   var eeccBtn = document.getElementById('btn-eecc-download');
   if (eeccBtn) {
     eeccBtn.addEventListener('click', async function () {
       try {
         eeccBtn.disabled = true;
-        setStatus('Vertragsunterlagen werden vorbereitet …');
+        setStatus('Vorvertragliche Informationen werden vorbereitet …');
         var result = await buildDocsBundle();
         if (result.bytes) {
-          triggerDownload(new Blob([result.bytes], { type: 'application/pdf' }), 'osnatel-Vertragsunterlagen.pdf');
-          setStatus('Vertragsunterlagen heruntergeladen. Sie können den Auftrag jetzt absenden.', 'ok');
+          triggerDownload(new Blob([result.bytes], { type: 'application/pdf' }), 'osnatel-Vorvertragliche-Informationen.pdf');
+          setStatus('Vorvertragliche Informationen heruntergeladen. Sie können den Auftrag jetzt unterschreiben und absenden.', 'ok');
         } else {
-          setStatus('Die Vertragsunterlagen werden noch ergänzt. Sie können den Auftrag trotzdem absenden – die Unterlagen liegen Ihrer Auftrags-PDF bei.', 'ok');
+          setStatus('Die vorvertraglichen Informationen werden noch ergänzt. Sie können den Auftrag trotzdem absenden – die Informationen liegen Ihrer Auftrags-PDF bei.', 'ok');
         }
         eeccBtn.classList.add('done');
-        eeccBtn.textContent = '✓ Vertragsunterlagen heruntergeladen';
+        eeccBtn.textContent = '✓ Vorvertragliche Informationen heruntergeladen';
         eeccDone = true;
         updateSubmitGate();
       } catch (err) {
@@ -1049,7 +995,7 @@ var PARAM_ALIASES = {
   var downloadBtn = document.getElementById('btn-download');
   downloadBtn.addEventListener('click', async function () {
     if (!eeccDone) {
-      setStatus('Bitte laden Sie zuerst die Vertragsunterlagen herunter (Abschnitt 2).', 'err');
+      setStatus('Bitte laden Sie zuerst die vorvertraglichen Informationen herunter.', 'err');
       return;
     }
     if (!requireSignature()) return;
@@ -1072,7 +1018,7 @@ var PARAM_ALIASES = {
         setStatus('Ihr PDF wurde heruntergeladen – der Auftrag wird an uns übermittelt …');
         try {
           await sendOrderMail(blob);
-          var zusatz = lastBundleDocs.length ? ' inklusive ' + lastBundleDocs.length + ' Vertragsunterlagen' : '';
+          var zusatz = lastBundleDocs.length ? ' inklusive der vorvertraglichen Informationen' : '';
           setStatus('Vielen Dank! Ihr unterschriebener Auftrag' + zusatz + ' wurde heruntergeladen und erfolgreich an uns übermittelt. Wir melden uns bei Ihnen.', 'ok');
         } catch (mailErr) {
           setStatus('Ihr PDF wurde heruntergeladen. Die automatische Übermittlung hat leider nicht geklappt – bitte senden Sie uns das PDF per E-Mail an ' +
@@ -1091,6 +1037,5 @@ var PARAM_ALIASES = {
   // ---------- Start ----------
   loadPdf();
   initSignaturePad();
-  renderDocuments();
   updateSubmitGate();
 })();
